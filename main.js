@@ -24,6 +24,16 @@ class Field {
     }
   }
 
+  // Check if the player's current position is inside the field boundaries
+  isInBounds() {
+    return (
+      this.playerY >= 0 &&
+      this.playerY < this.field.length &&
+      this.playerX >= 0 &&
+      this.playerX < this.field[0].length
+    );
+  }
+
   playGame() {
     let playing = true;
 
@@ -62,4 +72,4 @@ const myField = new Field([
   ["░", "^", "░"],
 ]);
 
-myField.print();
+myField.playGame();
