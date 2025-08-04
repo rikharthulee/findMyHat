@@ -38,12 +38,15 @@ class Field {
     let playing = true;
 
     while (playing) {
-      this.print(); // Print the initial field
+      this.print();
 
-      // Ask the player for input
       const direction = prompt(
         "Which way? (u = up, d = down, l = left, r = right): "
       );
+
+      // ✅ Save previous position before moving
+      const prevX = this.playerX;
+      const prevY = this.playerY;
 
       switch (direction) {
         case "u":
@@ -60,7 +63,29 @@ class Field {
           break;
         default:
           console.log("Invalid input. Use u, d, l, or r.");
-          continue; // Skip to next loop iteration without checking the tile
+          continue;
+      }
+
+      if (!this.isInBounds()) {
+        console.log("Out of bounds! Game over.");
+        playing = false;
+        break;
+      }
+
+      const tile = this.field[this.playerY][this.playerX];
+
+      if (tile === hole) {
+        console.log("You fell into a hole! 💀 Game over.");
+        playing = false;
+      } else if (tile === hat) {
+        console.log("You found your hat! 🎩 You win!");
+        playing = false;
+      } else {
+        // Clear old position
+        this.field[prevY][prevX] = fieldCharacter;
+
+        // Set new position
+        this.field[this.playerY][this.playerX] = pathCharacter;
       }
     }
   }
