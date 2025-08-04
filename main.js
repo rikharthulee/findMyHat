@@ -1,30 +1,28 @@
-//importing prompt-sync for user input
+// Import prompt-sync for user input
 const prompt = require("prompt-sync")({ sigint: true });
 
-// Constants for the game
+// Constants for the symbols used in the game
 const hat = "^";
 const hole = "O";
 const fieldCharacter = "░";
 const pathCharacter = "*";
 
-// Class representing the game field
+// Define the Field class (handles the map, movement, logic)
 class Field {
-  // Initialize the field with a 2D array
-  // and set the player's starting position
   constructor(field) {
     this.field = field;
     this.playerX = 0;
     this.playerY = 0;
   }
 
-  // Print the game field to the console, joining each row with a space
+  // Print the field to the console
   print() {
     for (let row of this.field) {
       console.log(row.join(" "));
     }
   }
 
-  // Check if the player's current position is inside the field boundaries
+  // Check whether the player is still within the grid
   isInBounds() {
     return (
       this.playerY >= 0 &&
@@ -34,20 +32,22 @@ class Field {
     );
   }
 
+  // The main game loop
   playGame() {
     let playing = true;
 
     while (playing) {
-      this.print();
+      this.print(); // Show current field
 
       const direction = prompt(
         "Which way? (u = up, d = down, l = left, r = right): "
       );
 
-      // ✅ Save previous position before moving
+      // Store previous position before moving
       const prevX = this.playerX;
       const prevY = this.playerY;
 
+      // Move player based on input
       switch (direction) {
         case "u":
           this.playerY -= 1;
@@ -66,35 +66,71 @@ class Field {
           continue;
       }
 
+      // Check if the player walked off the map
       if (!this.isInBounds()) {
-        console.log("Out of bounds! Game over.");
+        console.log("🚫 Out of bounds! Game over.");
         playing = false;
         break;
       }
 
+      // Check what the player has landed on
       const tile = this.field[this.playerY][this.playerX];
 
       if (tile === hole) {
-        console.log("You fell into a hole! 💀 Game over.");
+        console.log("💀 You fell into a hole! Game over.");
         playing = false;
       } else if (tile === hat) {
-        console.log("You found your hat! 🎩 You win!");
+        console.log("🎩 You found your hat! You win!");
         playing = false;
       } else {
-        // Clear old position
+        // Clear previous spot, move player to new one
         this.field[prevY][prevX] = fieldCharacter;
-
-        // Set new position
         this.field[this.playerY][this.playerX] = pathCharacter;
       }
     }
   }
+
+  // Static method to create a randomly generated field
+  static generateField(height, width, holePercentage = 0.2) {
+    const field = []; // We'll build this 2D array row by row
+
+    // Outer loop: one iteration for each row
+    for (let y = 0; y < height; y++) {
+      const row = []; // Start a new row
+
+      // Inner loop: one iteration for each column in the current row
+      for (let x = 0; x < width; x++) {
+        const random = Math.random(); // Generate a random number between 0 and 1
+
+        // If the number is less than the holePercentage, place a hole
+        if (random < holePercentage) {
+          row.push(hole);
+        } else {
+          // Otherwise, place a normal field character
+          row.push(fieldCharacter);
+        }
+      }
+
+      // After filling the row with tiles, add it to the main field array
+      field.push(row);
+    }
+
+    // Set the starting position [0][0] to be the player
+    field[0][0] = pathCharacter;
+
+    // Place the hat somewhere random (but not at the starting point)
+    let hatX, hatY;
+    do {
+      hatX = Math.floor(Math.random() * width); // random column
+      hatY = Math.floor(Math.random() * height); // random row
+    } while (hatX === 0 && hatY === 0); // Make sure it's not the starting tile
+
+    field[hatY][hatX] = hat; // Place the hat
+
+    return field; // Done! Return the randomly generated field
+  }
 }
 
-const myField = new Field([
-  ["*", "░", "O"],
-  ["░", "O", "░"],
-  ["░", "^", "░"],
-]);
-
+// Create a new game with random map
+const myField = new Field(Field.generateField(5, 5, 0.2));
 myField.playGame();
